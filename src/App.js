@@ -7,6 +7,7 @@ import Rank from "./components/Rank/Rank";
 import Particles from 'react-particles-js';
 import FaceRecog from './components/FaceRecog/FaceRecog'
 import Signin from './components/Signin/signin'
+import Register from './components/Register/Register';
 
 const Clarifai = require('clarifai');
 
@@ -97,9 +98,6 @@ onButtonClick = () => {
     this.setState({route : route});
   }
 
-  signOut = () => {
-    this.setState({route : "signin"});
-  }
 
   render() {
     return (
@@ -109,18 +107,24 @@ onButtonClick = () => {
         className = "particles"
         params={particlesOptions}
         />
-        { this.state.route ==='signin' ?
-        <Signin onRouteChange={this.onRouteChange}/> 
-        :
+        { this.state.route ==='home' ?
         <div>
           <div className= 'navbar'>
             <Logo /> 
-            <Nav signOut={this.signOut}/> 
+            <Nav onRouteChange={this.onRouteChange}/> 
           </div>
           <Rank/>
           <ImageLinkForm onInputChange = {this.onInputChange} onButtonClick = {this.onButtonClick}/>
           <FaceRecog box = {this.state.box} imageUrl = {this.state.imageUrl}/>
         </div>
+        : ( 
+          this.state.route ==='signin' ?
+          <Signin onRouteChange={this.onRouteChange}/> :
+          <Register onRouteChange={this.onRouteChange}/>
+        )
+        
+        
+        
         }
        
       </div>

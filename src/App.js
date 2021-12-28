@@ -61,22 +61,34 @@ class App extends Component {
       imageUrl : '',
       box: {},
       route: 'signin',
-      onSignIn : false
+      onSignIn : false,
+      isSignedIn: false,
+      user : {
+        id: '',
+        name: '',
+        email: '',
+        entries: '0',
+        joined : ''
+      }
     }
   }
 
-  componentDidMount(){
-    fetch('192.168.1.132:3001/')
-      .then(response => response.json())
-      .then(data => console.log(data))
-  }
+  loadUser = (data) => {
+      this.setState({user: {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        entries: data.entries,
+        joined : data.joined
+      }})
+      console.log(this.state.user)
+    }
 
   calculateFaceLocation = (data) => {
     const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box
     const image = document.getElementById('inputimage')
     const width = Number(image.width);
     const height = Number(image.height);
-    console.log(width, height)
     return {
       leftCol: clarifaiFace.left_col * width,
       topRow: clarifaiFace.top_row * height,
@@ -86,7 +98,6 @@ class App extends Component {
   }
 
   displayFaceBox = (box) => {
-    console.log(box)
     this.setState({box : box});
   }
 
@@ -96,9 +107,26 @@ onButtonClick = () => {
     .predict(
       Clarifai.FACE_DETECT_MODEL, 
       this.state.inputText)
-    .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
-    .catch(err => console.log(err));
-}
+    .then(response => {
+      if(response){
+        console.log("fired");
+        fetch("http://localhost:3001/image", {
+            method: "put",
+            headers : {'content-Type' : 'application/json'},
+            body : JSON.stringify({
+                id : this.state.user.id
+            })
+        })
+            .then(response=> response.json())
+            .then(count => {
+              console.log("response", count)
+              this.setState(Object.assign(this.state.user, {entries: count} ))
+            })
+      }
+     this.displayFaceBox(this.calculateFaceLocation(response))
+     .catch(err => console.log(err));});
+    }
+
 
  onInputChange = (x) => { 
   this.setState({inputText : x.target.value})
@@ -107,12 +135,13 @@ onButtonClick = () => {
   onRouteChange = (route) => {
     this.setState({route : route});
     if(route === "home") {
-      console.log("home")
       this.setState({onSignIn : true })
     } else {
       this.setState({onSignIn : false})
     }
   }
+
+  
 
 
   render() {
@@ -129,7 +158,7 @@ onButtonClick = () => {
             <Logo /> 
             <Nav onRouteChange={this.onRouteChange} onSignIn={this.state.onSignIn}/> 
           </div>
-          <Rank/>
+          <Rank name={this.state.user.name} entries={this.state.user.entries}/>
           <ImageLinkForm onInputChange = {this.onInputChange} onButtonClick = {this.onButtonClick}/>
           <FaceRecog box = {this.state.box} imageUrl = {this.state.imageUrl}/>
         </div>
@@ -137,12 +166,12 @@ onButtonClick = () => {
           this.state.route ==='signin' ?
           <div>
           <Nav onRouteChange={this.onRouteChange} onSignIn={this.state.onSignIn}/>
-          <Signin onRouteChange={this.onRouteChange}/> 
+          <Signin loadUser={this.loadUser} onRouteChange={this.onRouteChange}/> 
           </div> 
           :
           <div>
           <Nav onRouteChange={this.onRouteChange} onSignIn={this.state.onSignIn}/>
-          <Register onRouteChange={this.onRouteChange}/>
+          <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange}/>
           </div>
         
         }

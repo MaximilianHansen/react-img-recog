@@ -2,18 +2,21 @@ import React from 'react';
 
 
 
-const Rank = () => {
-    return (
-        <div >
-          <div className=" white f3 center" >
-              {"Hello Max your current rank is..."}
-          </div>
-          <div className=" white f1 center">
-              {'#1'}
-          </div>
-        </div>
+class Rank extends React.Component {
+    render(){
+        const { name, entries} = this.props;
+        return (
+            <div >
+            <div className=" white f3 center" >
+                {`Hello ${name} your current entry count is...${entries}`}
+            </div>
+            <div className=" white f1 center">
+                {'#1'}
+            </div>
+            </div>
     );
-
+}
+    
 }
 
 export default Rank;

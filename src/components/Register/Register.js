@@ -19,7 +19,7 @@ class Register extends React.Component {
             this.setState({regPassword : event.target.value})
         }
         onSubmitRegister = () => {
-            fetch("http://localhost:3001/register", {
+            fetch("https://damp-hamlet-34896.herokuapp.com/register", {
                 method: "post",
                 headers : {'content-Type' : 'application/json'},
                 body : JSON.stringify({
@@ -29,7 +29,7 @@ class Register extends React.Component {
                 })
             })
             .then(response => response.json())
-            .then(user => {if(user){
+            .then(user => {if(user.id){
                 this.props.loadUser(user);
                 this.props.onRouteChange('home');
                 }

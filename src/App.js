@@ -10,11 +10,6 @@ import Signin from './components/Signin/signin';
 import Register from './components/Register/Register';
 
 
-const Clarifai = require('clarifai');
-
-const app = new Clarifai.App({
- apiKey: '6d3d8bafe090435aac9117d98d7a84d0'
-});
 
 
 
@@ -51,26 +46,26 @@ const particlesOptions = {
   }
 }}
 
-
+const initialState = {
+  inputText : '',
+  imageUrl : '',
+  box: {},
+  route: 'signin',
+  onSignIn : false,
+  isSignedIn: false,
+  user : {
+    id: '',
+    name: '',
+    email: '',
+    entries: '0',
+    joined : ''
+  }
+}
 
 class App extends Component {
   constructor() {
     super();
-    this.state = {
-      inputText : '',
-      imageUrl : '',
-      box: {},
-      route: 'signin',
-      onSignIn : false,
-      isSignedIn: false,
-      user : {
-        id: '',
-        name: '',
-        email: '',
-        entries: '0',
-        joined : ''
-      }
-    }
+    this.state = initialState
   }
 
   loadUser = (data) => {
@@ -103,14 +98,17 @@ class App extends Component {
 
 onButtonClick = () => {
   this.setState({imageUrl : this.state.inputText})
-  app.models
-    .predict(
-      Clarifai.FACE_DETECT_MODEL, 
-      this.state.inputText)
+  fetch("https://damp-hamlet-34896.herokuapp.com/imageurl", {
+    method: "post",
+    headers : {'content-Type' : 'application/json'},
+    body : JSON.stringify({
+        input : this.state.inputText
+    })})
+    .then(response => response.json())
     .then(response => {
       if(response){
         console.log("fired");
-        fetch("http://localhost:3001/image", {
+        fetch("https://damp-hamlet-34896.herokuapp.com/image", {
             method: "put",
             headers : {'content-Type' : 'application/json'},
             body : JSON.stringify({
@@ -122,10 +120,11 @@ onButtonClick = () => {
               console.log("response", count)
               this.setState(Object.assign(this.state.user, {entries: count} ))
             })
+            .catch(console.log)
       }
-     this.displayFaceBox(this.calculateFaceLocation(response))
-     .catch(err => console.log(err));});
-    }
+     this.displayFaceBox(this.calculateFaceLocation(response));
+    });
+}
 
 
  onInputChange = (x) => { 
@@ -133,12 +132,12 @@ onButtonClick = () => {
   }
 
   onRouteChange = (route) => {
-    this.setState({route : route});
     if(route === "home") {
       this.setState({onSignIn : true })
     } else {
-      this.setState({onSignIn : false})
-    }
+      this.setState(initialState)
+    } 
+    this.setState({route : route});
   }
 
   
